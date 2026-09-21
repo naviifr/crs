@@ -1,0 +1,11 @@
+*.exe
+*.obj
+*.lib
+*.exp
+*.pdb
+crash-ac45abaaef4dd6870924cfef9f0e842869951e8b
+
+results/
+
+__pycache__/
+*.pyc
