@@ -1,13 +1,14 @@
 import subprocess
 import sys
 import json
+from core.models import Result
 
-def initiate_semgrep():
+def analyze():
     command = [
         "semgrep",
         r"--config=./rules/memory.yml",
         "--json",
-        "./target/static.c"
+        "./target/semgrep/static.c"
     ]
 
     result = subprocess.run(
@@ -34,34 +35,42 @@ def write_json(evidence):
 
     data = json.loads(evidence)
 
-    with open(f'./results/analysis.json', 'w') as file:
+    with open(f'./results/semgrep.json', 'w') as file:
             json.dump(parse_json(data), file, indent= 4)
     print("Evidence Written")
 
 def parse_json(data):
 
-    findings = []
+    result = data["results"][0]
 
-    for result in data["results"]:
-        finding = {
-            "rule_id": result["check_id"],
-            "file": result["path"],
-            "start_line": result["start"]["line"],
-            "start_col": result["start"]["col"],
-            "end_line": result["end"]["line"],
-            "end_col": result["end"]["col"],
-            "message": result["extra"]["message"],
-            "severity": result["extra"]["severity"]
-        }
+    finding = {
+        "rule_id": result["check_id"],
+        "file": result["path"],
+        "start_line": result["start"]["line"],
+        "start_col": result["start"]["col"],
+        "end_line": result["end"]["line"],
+        "end_col": result["end"]["col"],
+        "message": result["extra"]["message"],
+        "severity": result["extra"]["severity"]
+    }
 
-        findings.append(finding)
+    print(finding)
 
-    return findings
+    Result("semgrep", finding["rule_id"], 
+            finding["file"],
+            finding["start_line"],
+            finding["message"],
+            finding["severity"],
+            data)
 
-try:
-    initiate_semgrep()
+    return finding
 
+def semgrep_initiate():
+    
+    try:
+        analyze()
 
-except Exception as e:
-    print(str(e))
-    sys.exit(2)
+    except Exception as e:
+        print(str(e))
+        sys.exit(2)
+
